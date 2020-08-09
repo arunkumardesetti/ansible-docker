@@ -1,0 +1,51 @@
+- hosts: 192.168.43.173
+  tasks:
+    - name: Configuring yum repository for docker
+      yum_repository:
+        name: dockerdvd
+        baseurl: https://download.docker.com/linux/centos/7/x86_64/stable
+        description: docker repository
+        enabled: true
+        gpgcheck: no
+                 
+    - name: Install Docker package and start the Docker Service
+      package:
+        name: "docker-ce-18.06.3.ce-3.el7.x86_64"
+        state: present
+               
+    - name: Docker service start and making permanent
+      service:
+        name: "docker"
+        state: started
+        enabled: yes
+                
+    - name: python3 Docker SKD
+      command: pip3 install docker
+      register: x
+      ignore_errors: yes
+         
+    - debug:
+        var: x
+                     
+    - name: Creating a folder in the remote system
+      file:
+        path: "/arun_ansible"
+        state: directory
+               
+    - name: copying the files to the remote system
+      copy:         
+        src: "home.html"
+        dest: "/arun_ansible/"
+                 
+    - name: Creating a Docker Container
+      docker_container:
+        name: "client-server"
+        image: "httpd"
+        state: started
+        exposed_ports:
+          - "80"
+        ports:
+          - "1280:80"
+        volumes:
+          - /arun_ansible/:/usr/local/apache2/htdocs/
+
